@@ -7,55 +7,48 @@
           src="https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=4158315065,3801171016&fm=26&gp=0.jpg"
           fit="scale-down"
         ></el-image>
-        TQA Demo
-      </el-header>
-      <el-divider class="app-divider"></el-divider>
-      <el-main>
-        <el-row :gutter="20">
-          <el-col :span="9">
-            <lessons></lessons>
-          </el-col>
-          <el-col :span="1" >
-            <el-divider direction="vertical" class="app-vertical-divider"></el-divider>
-          </el-col>
-          <el-col :span="14">
-            <div class="app-component-header">
-              <el-switch
+        <span style='flex:auto'>TQA Demo</span>
+        <el-switch
                 style="display: block"
-                v-model="askMode"
+                :value="mode==='qa'"
+                @change='changeSwitch'
                 active-color="#13ce66"
                 inactive-color="#409eff"
                 active-text="问答模式"
-                inactive-text="检索模式"
+                inactive-text="浏览模式"
               >
-              </el-switch>
-            </div>
-
-            <component :is="askMode ? 'ask' : 'search'"></component>
-          </el-col>
-        </el-row>
+        </el-switch>
+      </el-header>
+      <el-divider class="app-divider"></el-divider>
+      <el-main>
+        <router-view></router-view>
       </el-main>
     </el-container>
   </div>
 </template>
 
 <script>
-import Search from "./components/Search.vue";
-import Ask from "./components/Ask.vue";
-import Lessons from "./components/Lessons.vue";
-
 export default {
   name: "App",
-  components: {
-    Search,
-    Ask,
-    Lessons,
-  },
   data() {
     return {
-      askMode: false,
+      mode: 'browse',
     };
   },
+  methods:{
+    changeSwitch(e){
+      if(e){
+        this.mode = 'qa';
+      }else{
+        this.mode = 'browse';
+      }
+
+      this.$router.push({name: this.mode})
+    }
+  },
+  mounted(){
+    this.mode = this.$route.path.substring(1);
+  }
 };
 </script>
 

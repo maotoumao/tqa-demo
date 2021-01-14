@@ -3,13 +3,14 @@
     <el-dialog :visible.sync="previewVisible">
       <img width="100%" :src="previewImgUrl" alt="" />
     </el-dialog>
-    <el-form :model="questionInfo" label-width="70px" label-position='left'>
+    <el-form :model="questionInfo" label-width="70px" label-position="left">
       <el-form-item prop="question" label="问题描述">
         <el-input type="textarea" v-model="questionInfo.question"></el-input>
       </el-form-item>
       <el-form-item label="示意图">
         <el-upload
-          :auto-upload='false'
+          ref="uploadImg"
+          :auto-upload="false"
           action="undefined"
           list-type="picture-card"
           :on-preview="handleImgPreview"
@@ -33,7 +34,7 @@
         </el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitForm()">提交</el-button>
+        <el-button type="primary" @click="onSubmitClick">提交</el-button>
         <el-button @click="addCandidate">新增选项</el-button>
       </el-form-item>
     </el-form>
@@ -42,9 +43,11 @@
 
 <script>
 import { v4 as uuidv4 } from "uuid";
+import axios from 'axios';
+import CONSTS from "../consts";
 
 export default {
-  name: "Ask",
+  name: "QaMode",
   data() {
     return {
       previewImgUrl: "",
@@ -68,16 +71,20 @@ export default {
         key: uuidv4(),
       });
     },
-    submitForm() {
-      console.log(this.questionInfo);
+    onSubmitClick() {
+      const imgs = this.$refs.uploadImg.uploadFiles;
+
+    //   axios.post('http://localhost:6028/model', {
+    //       ...this.questionInfo,
+    //       imgs
+    //   })
+      
     },
     handleImgPreview(file) {
       this.previewImgUrl = file.url;
       this.previewVisible = true;
     },
-    handleImgRemove(file, fileList) {
-      console.log(file, fileList);
-    },
+    handleImgRemove(file, fileList) {},
   },
 };
 </script>
