@@ -21,7 +21,7 @@
         ></el-divider>
       </el-col>
       <el-col :span="16">
-        <lesson :lessonDetail="lessonDetail" :status="lessonStatus"></lesson>
+        <lesson :lessonDetail="lessonDetail" :status="lessonStatus" :lessonId='activeLesson'></lesson>
       </el-col>
     </el-row>
   </div>

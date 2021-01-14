@@ -4,10 +4,10 @@
       <el-header class="app-header">
         <el-image
           style="height: 80%; width: 100px"
-          src="https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=4158315065,3801171016&fm=26&gp=0.jpg"
-          fit="scale-down"
+          :src="require('./assets/logo.png')"
+          fit="contain"
         ></el-image>
-        <span style='flex:auto'>TQA Demo</span>
+        <span style='flex:auto'>智能问答系统</span>
         <el-switch
                 style="display: block"
                 :value="mode==='qa'"

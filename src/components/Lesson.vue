@@ -50,7 +50,15 @@
                     v-loading="!predictedAnswer[question.globalID]"
                     element-loading-spinner="el-icon-loading"
                   >
-                    {{ predictedAnswer[question.globalID] }}
+                    <template v-if="predictedAnswer[question.globalID]">
+                      {{ predictedAnswer[question.globalID].answer }}
+                      <el-button
+                        type="text"
+                        style="margin-left: 20px"
+                        @click="onDetailClick(question)"
+                        >查看详情</el-button
+                      >
+                    </template>
                   </span>
                 </div>
               </el-card>
@@ -104,7 +112,15 @@
                     v-loading="!predictedAnswer[question.globalID]"
                     element-loading-spinner="el-icon-loading"
                   >
-                    {{ predictedAnswer[question.globalID] }}
+                    <template v-if="predictedAnswer[question.globalID]">
+                      {{ predictedAnswer[question.globalID].answer }}
+                      <el-button
+                        type="text"
+                        style="margin-left: 20px"
+                        @click="onDetailClick(question)"
+                        >查看详情</el-button
+                      >
+                    </template>
                   </span>
                 </div>
               </el-card>
@@ -113,23 +129,66 @@
         </el-tabs>
       </template>
     </div>
+<el-dialog
+      title="答案详情"
+      :visible.sync="dialogVisible"
+      style="line-height: 1.8"
+      v-if='activeQuestion && activeCandidates && predictedAnswer[activeQuestion]'
+    >
+      <div style="display: flex; justify-content: space-evenly; ">
+        <div
+          v-for="(candidate, index) in activeCandidates"
+          :key="index"
+        >
+          <div style='display: flex; flex-direction: column; align-items:center; '>
+            <el-progress
+              type="circle"
+              :percentage="+(100 * predictedAnswer[activeQuestion].probability[index]).toFixed(4)"
+            ></el-progress>
+            <div style="line-height: 2">选项{{ index + 1 }}: {{ candidate }}</div>
+          </div>
+        </div>
+      </div>
+      <el-divider></el-divider>
+      <div>
+        <div>参考知识：</div>
+        <div>{{ predictedAnswer[activeQuestion].cls_sent }}</div>
+      </div>
+
+      <span slot="footer">
+        <el-button type="danger" @click="dialogVisible = false">关闭</el-button>
+      </span>
+    </el-dialog>
+    
+
   </div>
 </template>
 
 <script>
+import axios from "axios";
 import CONSTS from "../consts";
 
 export default {
   name: "Lesson",
-  props: ["lessonDetail", "status"],
+  props: ["lessonDetail", "status", "lessonId"],
   data() {
     return {
       tab: "lesson",
+      activeQuestion: null,
+      activeCandidates: null,
+      dialogVisible: false,
       predictedAnswer: {},
       imgBase: CONSTS.BROWSE_BASE,
     };
   },
   methods: {
+    onDetailClick(questionInfo){
+      // console.log(questionInfo);
+      this.activeQuestion = questionInfo.globalID;
+      this.activeCandidates = Object.values(questionInfo.answerChoices).map(v => v.processedText);
+      this.dialogVisible = true;
+    },
+
     async onModelPredictClick(questionInfo) {
       let ans = this.predictedAnswer[questionInfo.globalID];
       if (ans) {
@@ -139,14 +198,29 @@ export default {
         ...this.predictedAnswer,
         [questionInfo.globalID]: null,
       };
-      ans = await new Promise((resolve, reject) => {
-        setTimeout(() => {
-          resolve(questionInfo.correctAnswer.processedText);
-        }, 500);
-      });
+
+      const formData = new FormData();
+      formData.append("search", [this.lessonId, questionInfo.globalID]);
+
+      ans = (await axios.post(CONSTS.MODEL_BASE, formData)).data;
+      let { score, cls_sent } = ans;
+      score = score.substring(1, score.length - 1);
+      let probArray = score.split(/\s/);
+      const candidates = Object.values(questionInfo.answerChoices);
+      probArray = probArray.filter((v) => v !== "");
+      probArray = probArray.slice(0, candidates.length);
+      const sum = probArray.reduce((prev, curr) => +prev + +curr, 0);
+      probArray = probArray.map((v) => parseFloat(v) / sum);
+      const maxProb = Math.max(...probArray);
+      const answer = candidates[probArray.indexOf(maxProb)].rawText;
+
       this.predictedAnswer = {
         ...this.predictedAnswer,
-        [questionInfo.globalID]: ans,
+        [questionInfo.globalID]: {
+          answer,
+          probability: probArray,
+          cls_sent
+        },
       };
     },
   },

@@ -5,12 +5,15 @@ import VueRouter from 'vue-router';
 import routers from './router';
 import App from './App.vue';
 
+// import './mock';
+
 Vue.config.productionTip = false;
 Vue.use(ElementUI);
 Vue.use(VueRouter);
 
 const router = new VueRouter({
   mode: 'history',
+  base: '/tqa-demo/',
   routes: routers
 })
 
